@@ -13,7 +13,7 @@ var asgName=argv._[0];
 
 var asgardHost;
 if (argv.asgardHost) {
-    asgardHost = argv.asgard;
+    asgardHost = argv.asgardHost;
 }
 
 if (!asgardHost) {
