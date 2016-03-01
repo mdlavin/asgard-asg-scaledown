@@ -36,7 +36,13 @@ if (argv.rate) {
     rate = parseInt(argv.rate);
 }
 
-console.log('Shrinking ASG',asgName,'on',asgardHost,'in region',region,'down to', targetSize,'by',rate);
+var delay = 5;
+if (argv.delay) {
+    delay = parseInt(argv.delay);
+}
+
+console.log('Shrinking ASG',asgName,'on',asgardHost,'in region',region,'down to',
+  targetSize,'by',rate,'every',delay,'minutes');
 
 var asgardBaseUrl = 'http://'+asgardHost+'/'+region+'/';
 
@@ -127,7 +133,7 @@ async.whilst(function () {return !done;}, function (callback) {
                 callback();
             } else {
                 console.log('ASG',asgName,'has',countLeft,'more nodes');
-                setTimeout(callback, 5*60*1000);
+                setTimeout(callback, delay*60*1000);
             }
         }
     ], callback);
