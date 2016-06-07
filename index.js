@@ -101,7 +101,7 @@ function dropOneNode(name, callback) {
         
         function (maxSize, callback) {
             if (maxSize > targetSize) {
-                var newSize = maxSize-rate;
+                var newSize = Math.max(0, maxSize-rate);
                 async.waterfall([
                     function (callback) {
                         resizeAsg(asgName, newSize, callback);
