@@ -58,7 +58,7 @@ function resizeAsg(name, size, callback) {
                 }
             }, callback);
         },
-                    
+
         function (response, body, callback) {
             var redirect = response.headers['location'];
             var taskShow = /\/task\/show\//;
@@ -67,11 +67,15 @@ function resizeAsg(name, size, callback) {
                 callback(new Error('Failed to resize ASG'));
                 return;
             }
-            
+
             callback();
         }
-        
+
     ], callback);
+}
+
+function isTerminateEnabled (body) {
+    return body && _.includes(body.terminateStatus, 'Enabled');
 }
 
 function dropOneNode(name, callback) {
@@ -79,26 +83,30 @@ function dropOneNode(name, callback) {
         function (callback) {
             var infoURL = asgardBaseUrl +
                     'autoScaling/show/' + asgName + '.json';
-            
+
             request.get({uri: infoURL, json: true}, callback);
         },
-        
+
         function (response, body, callback) {
             if (response.statusCode !== 200) {
                 console.log('Failed response from getting ASG info', response);
                 callback(new Error('Failed to get ASG info'));
                 return;
             }
-            
+
             if (!(body.group) || !(_.has(body.group, 'maxSize'))) {
                 console.log('Failed to find maxSize for ASG', body);
                 callback(new Error('Failed to find maxSize for ASG'));
                 return;
             }
-            
+
+            if (!isTerminateEnabled(body)) {
+                return callback(new Error('ASG terminateStatus is ' + body.terminateStatus))
+            }
+
             callback(null, body.group.maxSize);
         },
-        
+
         function (maxSize, callback) {
             if (maxSize > targetSize) {
                 var newSize = Math.max(0, maxSize-rate);
@@ -114,13 +122,13 @@ function dropOneNode(name, callback) {
                 callback(null, 0);
             }
         }
-        
+
     ], callback);
 }
 
 var done = false;
 async.whilst(function () {return !done;}, function (callback) {
-    
+
     async.waterfall([
         function (callback) {
             console.log('Resizing',asgName, 'to have one less node');
